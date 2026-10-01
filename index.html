@@ -580,7 +580,12 @@ main {
   // fer servir sempre FieldPath (camps segment a segment, no cadenes amb
   // punts, perquè les dates porten guions) per actualitzar només el camp
   // niat concret sense tocar la resta.
-  function fieldPath() { return new firebase.firestore.FieldPath(Array.prototype.slice.call(arguments)); }
+  function fieldPath() {
+    var args = Array.prototype.slice.call(arguments);
+    var Ctor = firebase.firestore.FieldPath;
+    var BoundCtor = Function.prototype.bind.apply(Ctor, [null].concat(args));
+    return new BoundCtor();
+  }
   function updateFields(ref, pairs) {
     // pairs: array de [fieldPathArray, value]
     const args = [];
