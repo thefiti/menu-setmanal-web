@@ -574,6 +574,20 @@ main {
   // A Firebase, imatge_id ÉS la URL pública de descàrrega (no cal resoldre-la).
   function imgSrc(id) { return id; }
 
+  // Firestore NO fa merge profund d'objectes niats a .update(): si li
+  // passes { days: { "2026-10-02": { notes: "x" } } }, substitueix TOT el
+  // camp "days" per aquest objecte petit, esborrant la resta de dies. Cal
+  // fer servir sempre FieldPath (camps segment a segment, no cadenes amb
+  // punts, perquè les dates porten guions) per actualitzar només el camp
+  // niat concret sense tocar la resta.
+  function fieldPath() { return new firebase.firestore.FieldPath(Array.prototype.slice.call(arguments)); }
+  function updateFields(ref, pairs) {
+    // pairs: array de [fieldPathArray, value]
+    const args = [];
+    pairs.forEach(function (p) { args.push(fieldPath.apply(null, p[0]), p[1]); });
+    return ref.update.apply(ref, args);
+  }
+
   let toastTimer = null;
   function showToast(message, isError) {
     const el = document.getElementById("toast");
@@ -698,10 +712,7 @@ main {
             btn.addEventListener("click", async function () {
               const delta = parseInt(btn.dataset.delta, 10);
               const nou = Math.max(1, slot.persones + delta);
-              const patch = { days: {} };
-              patch.days[dateStr] = {};
-              patch.days[dateStr][key] = { persones: nou };
-              try { await menuRef.update(patch); } catch (e) { console.error(e); }
+              try { await updateFields(menuRef, [[["days", dateStr, key, "persones"], nou]]); } catch (e) { console.error(e); }
             });
           });
           casella.appendChild(personesEl);
@@ -736,9 +747,7 @@ main {
     if ((dayData.notes || "") === value) return;
     clearTimeout(notesTimers[dateStr]);
     notesTimers[dateStr] = setTimeout(async function () {
-      const patch = { days: {} };
-      patch.days[dateStr] = { notes: value };
-      try { await menuRef.update(patch); } catch (e) { showToast("Error desant la nota: " + e.message, true); }
+      try { await updateFields(menuRef, [[["days", dateStr, "notes"], value]]); } catch (e) { showToast("Error desant la nota: " + e.message, true); }
     }, 300);
   }
 
@@ -815,15 +824,9 @@ main {
   document.getElementById("cerca-recepta").addEventListener("input", function (e) { renderMiniLlista(e.target.value); });
 
   async function assignRecipe(dateStr, apat, recipeId) {
-    const patch = { days: {} };
-    patch.days[dateStr] = {};
-    if (!recipeId) {
-      patch.days[dateStr][apat] = null;
-    } else {
-      patch.days[dateStr][apat] = { recipe_id: recipeId, persones: PERSONES_PER_DEFECTE };
-    }
+    const value = recipeId ? { recipe_id: recipeId, persones: PERSONES_PER_DEFECTE } : null;
     try {
-      await menuRef.update(patch);
+      await updateFields(menuRef, [[["days", dateStr, apat], value]]);
       closeModal("modal-slot");
     } catch (e) { showToast("Error: " + e.message, true); }
   }
@@ -979,17 +982,14 @@ main {
         if (!ok) return;
         try {
           if (menuDoc) {
-            const patch = { days: {} };
-            let touched = false;
+            const pairs = [];
             Object.keys(menuDoc.days).forEach(function (dateStr) {
               const day = menuDoc.days[dateStr];
-              const dayPatch = {};
               ["dinar", "sopar"].forEach(function (apat) {
-                if (day[apat] && day[apat].recipe_id === r.id) { dayPatch[apat] = null; touched = true; }
+                if (day[apat] && day[apat].recipe_id === r.id) { pairs.push([["days", dateStr, apat], null]); }
               });
-              if (Object.keys(dayPatch).length) patch.days[dateStr] = dayPatch;
             });
-            if (touched) await menuRef.update(patch);
+            if (pairs.length) await updateFields(menuRef, pairs);
           }
           await dbApi.collection("recipes").doc(r.id).delete();
           if (assetsApi && r.imatge_id) assetsApi.delete(r.imatge_id).catch(function () {});
