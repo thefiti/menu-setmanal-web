@@ -1,0 +1,13 @@
+# Claus privades del compte de servei de Firebase (NOMÉS per la tasca pont de
+# sincronització, mai per aquesta web pública) — no s'han de pujar mai a git.
+service-account*.json
+*-firebase-adminsdk-*.json
+
+# El firebase-config.js amb la configuració real SÍ es puja (no és secret,
+# cal que sigui públic perquè la pàgina el pugui carregar). Només s'ignora el
+# fitxer d'exemple si mai es renombra per error amb dades reals a sobre.
+
+# Dades i scripts de la migració única des de l'Artifact de Claude — útils
+# de conservar localment per si cal tornar a fer servir algun recurs, però
+# no formen part de la web pública i no cal pujar-los al repositori.
+migration/

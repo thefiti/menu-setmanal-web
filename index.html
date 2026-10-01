@@ -1,0 +1,1273 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Menú Setmanal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+img{max-width:100%}
+[hidden]:not([hidden=until-found i]){display:none!important}
+
+:root {
+  --bg: #f5f3ec;
+  --surface: #ffffff;
+  --surface-alt: #ece8dc;
+  --ink: #211f1a;
+  --muted: #837b6d;
+  --border: #ddd6c4;
+  --accent: #3f6b53;
+  --accent-ink: #ffffff;
+  --dinar-tint: #eef1e6;
+  --sopar-tint: #e8eef1;
+  --danger: #a3402e;
+  --danger-tint: #f6e3de;
+  --mustard: #a8791f;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171915;
+    --surface: #20231d;
+    --surface-alt: #2a2e24;
+    --ink: #ece7da;
+    --muted: #9a9284;
+    --border: #3a3e32;
+    --accent: #7fae8f;
+    --accent-ink: #0f1a13;
+    --dinar-tint: #24291f;
+    --sopar-tint: #1f262b;
+    --danger: #d98b78;
+    --danger-tint: #3a231e;
+    --mustard: #d9a94f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171915;
+  --surface: #20231d;
+  --surface-alt: #2a2e24;
+  --ink: #ece7da;
+  --muted: #9a9284;
+  --border: #3a3e32;
+  --accent: #7fae8f;
+  --accent-ink: #0f1a13;
+  --dinar-tint: #24291f;
+  --sopar-tint: #1f262b;
+  --danger: #d98b78;
+  --danger-tint: #3a231e;
+  --mustard: #d9a94f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Work Sans", -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  padding-inline: 16px;
+}
+
+h1, h2, .dia-nom, .recepta-card h3 {
+  font-family: "Fraunces", Georgia, serif;
+}
+
+.mono, .persones-valor, .item-comptador, .dia-data, .mi-meta {
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.topbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  background: var(--bg);
+  padding-block: 14px 0;
+  z-index: 10;
+  margin-inline: -16px;
+  padding-inline: 16px;
+}
+
+.topbar h1 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-family: inherit;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-block: 20px 40px;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.panel-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.periode-rang { color: var(--muted); font-size: 0.85rem; }
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-secondary { background: var(--surface-alt); color: var(--ink); }
+.btn-danger { background: var(--danger-tint); color: var(--danger); }
+.btn:hover { filter: brightness(0.95); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.graella {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 10px;
+}
+@media (max-width: 1100px) { .graella { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px) { .graella { grid-template-columns: 1fr; } }
+
+.dia-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.dia-nom {
+  text-align: center;
+  font-weight: 600;
+  padding: 8px;
+  background: var(--surface-alt);
+  font-size: 0.88rem;
+}
+.dia-data { display: block; font-size: 0.7rem; color: var(--muted); font-weight: 400; }
+
+.casella {
+  padding: 10px;
+  min-height: 92px;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.casella.dinar { background: var(--dinar-tint); }
+.casella.sopar { background: var(--sopar-tint); }
+.casella:hover { filter: brightness(0.97); }
+
+.apat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.recepta-nom { font-weight: 600; font-size: 0.9rem; }
+.recepta-link { font-size: 0.76rem; color: var(--accent); text-decoration: none; }
+.recepta-link-btn { border: none; background: transparent; padding: 0; text-align: left; cursor: pointer; font-family: inherit; text-decoration: underline; }
+.buit { color: var(--muted); font-size: 0.84rem; align-self: center; margin: auto 0; }
+.thumb-mini { width: 100%; height: 54px; object-fit: cover; border-radius: 6px; display: block; }
+
+.persones-control { margin-top: auto; display: flex; align-items: center; gap: 6px; }
+.persones-valor { font-size: 0.78rem; }
+.persones-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 6px;
+  width: 22px; height: 22px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+}
+.persones-btn:hover { background: var(--surface-alt); }
+
+.dia-notes {
+  border: none;
+  border-top: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.78rem;
+  padding: 8px 10px;
+  resize: vertical;
+  min-height: 40px;
+  width: 100%;
+  display: block;
+}
+.dia-notes::placeholder { color: var(--muted); }
+.dia-notes:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.receptari-llista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.recepta-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.recepta-card.pendent {
+  border-left-color: var(--mustard);
+  background: color-mix(in srgb, var(--mustard) 7%, var(--surface));
+}
+.recepta-card .thumb { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; margin-bottom: 8px; background: var(--surface-alt); display: block; }
+.recepta-card h3 { margin: 0 0 6px 0; font-size: 1rem; }
+.recepta-card a { color: var(--accent); font-size: 0.85rem; }
+.recepta-card .meta { color: var(--muted); font-size: 0.8rem; margin: 6px 0; }
+.badge-pendent {
+  display: inline-block;
+  background: var(--mustard);
+  color: var(--surface);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-bottom: 6px;
+}
+.recepta-card .card-actions { margin-top: 10px; display: flex; gap: 8px; }
+.recepta-card .card-actions button {
+  border: none; background: var(--surface-alt); color: var(--ink); border-radius: 6px;
+  padding: 6px 10px; font-size: 0.78rem; cursor: pointer; font-family: inherit;
+}
+
+.llista-compra { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.llista-compra li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px;
+}
+.llista-compra li.marcat { opacity: 0.5; text-decoration: line-through; }
+
+.basics-titol { margin: 24px 0 4px 0; font-size: 1.1rem; }
+.llista-compra.basics li { align-items: center; background: var(--surface-alt); border-style: dashed; }
+.llista-compra.basics .item-cos { flex: 1; }
+.basic-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.basic-actions button {
+  border: none; border-radius: 6px; padding: 6px 10px; font-size: 0.78rem; cursor: pointer; font-family: inherit;
+}
+.basic-actions .btn-afegeix { background: var(--accent); color: var(--accent-ink); }
+.basic-actions .btn-elimina { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.llista-compra input[type="checkbox"] { margin-top: 3px; }
+.item-text { font-weight: 500; }
+.item-recipes { display: block; font-size: 0.78rem; color: var(--muted); }
+.item-comptador { margin-left: 6px; font-weight: 600; color: var(--mustard); font-size: 0.82rem; }
+
+.hint { color: var(--muted); font-size: 0.88rem; }
+.hint.error { color: var(--danger); }
+.hint.ok { color: var(--accent); }
+
+.receptari-mini-llista { max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+.mini-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+}
+.mini-item:hover { background: var(--dinar-tint); }
+.mi-titol { font-weight: 500; }
+.mi-meta { font-size: 0.75rem; color: var(--muted); }
+
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(20, 18, 14, 0.5);
+  align-items: flex-start; justify-content: center; padding: 5vh 16px; overflow-y: auto; z-index: 100;
+}
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 12px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.modal-header h2 { margin: 0; font-size: 1.1rem; }
+.modal-close { border: none; background: transparent; font-size: 1.1rem; cursor: pointer; color: var(--muted); }
+.modal-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 4px; }
+.modal-body label { font-size: 0.8rem; color: var(--muted); margin-top: 10px; }
+.modal-body input, .modal-body textarea {
+  width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 0.92rem; font-family: inherit; background: var(--surface); color: var(--ink);
+}
+.modal-body .row { display: flex; gap: 10px; align-items: flex-end; }
+.modal-body .row input { flex: 1; }
+.modal-body .col { flex: 1; }
+.imatge-preview-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.imatge-preview { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; background: var(--surface-alt); }
+.imatge-preview[hidden] { display: none; }
+.modal-body hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.veure-recepta-imatge { width: 100%; max-height: 280px; object-fit: cover; border-radius: 8px; margin-bottom: 4px; background: var(--surface-alt); display: block; }
+.veure-llista { margin: 4px 0 14px 0; padding-left: 20px; }
+.veure-llista li { margin-bottom: 4px; }
+.modal-footer { margin-top: 16px; display: flex; justify-content: flex-end; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink);
+  color: var(--bg);
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  max-width: 90vw;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 200;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { background: var(--danger); color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<header class="topbar">
+  <h1>Menú Setmanal</h1>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="menu">Menú</button>
+    <button class="tab-btn" data-tab="compra">Llista de la compra</button>
+    <button class="tab-btn" data-tab="receptari">Receptari</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-menu" class="tab-panel active">
+    <div class="panel-actions">
+      <button id="btn-nova-setmana" class="btn btn-secondary">Setmana següent</button>
+      <span id="periode-rang" class="periode-rang mono"></span>
+    </div>
+    <div id="graella" class="graella"><p class="hint">Carregant…</p></div>
+  </section>
+
+  <section id="tab-compra" class="tab-panel">
+    <div class="panel-actions">
+      <button id="btn-genera-llista" class="btn btn-primary">Genera la llista d'aquesta setmana</button>
+      <button id="btn-selecciona-tot" class="btn btn-secondary">Selecciona-ho tot</button>
+      <button id="btn-neteja-marcats" class="btn btn-secondary">Desmarca-ho tot</button>
+    </div>
+    <p id="llista-generada-el" class="hint mono"></p>
+    <ul id="llista-compra" class="llista-compra"></ul>
+    <p id="llista-buida" class="hint" style="display:none">Encara no has generat la llista. Prem "Genera la llista" per crear-la a partir del menú d'aquesta setmana.</p>
+
+    <div id="bloc-basics" style="display:none">
+      <h2 class="basics-titol">Bàsics de rebost</h2>
+      <p class="hint">Coses com sal, oli o aigua que sol ja tenir a casa. Comprova si te'n queda i afegeix-les a la llista només si et falten.</p>
+      <ul id="llista-basics" class="llista-compra basics"></ul>
+    </div>
+  </section>
+
+  <section id="tab-receptari" class="tab-panel">
+    <div class="panel-actions">
+      <button id="btn-nova-recepta" class="btn btn-primary">Afegeix una recepta</button>
+    </div>
+    <div id="receptari-llista" class="receptari-llista"></div>
+  </section>
+</main>
+
+<div id="modal-slot" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-slot-titol">Assigna una recepta</h2>
+      <button class="modal-close" data-close="modal-slot">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="cerca-recepta" placeholder="Cerca al receptari…">
+      <div id="modal-slot-llista" class="receptari-mini-llista"></div>
+      <hr>
+      <button id="btn-nova-des-de-slot" class="btn btn-secondary">Crea una recepta nova per aquesta casella</button>
+      <button id="btn-buida-slot" class="btn btn-danger">Buida aquesta casella</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-recepta" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-recepta-titol">Nova recepta</h2>
+      <button class="modal-close" data-close="modal-recepta">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Enllaç d'Instagram (opcional, per referència)</label>
+      <input type="url" id="f-link" placeholder="https://www.instagram.com/reel/...">
+
+      <label>Imatge de la recepta (captura o foto de la publicació)</label>
+      <div class="imatge-preview-wrap">
+        <img id="imatge-preview" class="imatge-preview" hidden>
+        <input type="file" id="f-imatge" accept="image/png,image/jpeg,image/webp,image/gif">
+        <button id="btn-treu-imatge" class="btn btn-secondary" type="button" hidden>Treu la imatge</button>
+      </div>
+      <p id="imatge-status" class="hint"></p>
+
+      <label>Nom de la recepta</label>
+      <input type="text" id="f-titol" placeholder="p. ex. Curri de cigrons">
+
+      <div class="row">
+        <div class="col">
+          <label>Persones (per calcular la compra)</label>
+          <input type="number" id="f-persones" min="1" step="1" value="2">
+        </div>
+        <div class="col">
+          <label>Temps</label>
+          <input type="text" id="f-temps" placeholder="p. ex. 30 min">
+        </div>
+      </div>
+
+      <label>Ingredients (un per línia)</label>
+      <textarea id="f-ingredients" rows="6" placeholder="200g de cigrons cuits&#10;1 ceba&#10;…"></textarea>
+
+      <label>Passos (un per línia, opcional)</label>
+      <textarea id="f-passos" rows="4" placeholder="1. Sofregeix la ceba…&#10;2. …"></textarea>
+
+      <div class="modal-footer">
+        <button id="btn-desa-recepta" class="btn btn-primary">Desa la recepta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-veure-recepta" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="veure-recepta-titol">Recepta</h2>
+      <button class="modal-close" data-close="modal-veure-recepta">✕</button>
+    </div>
+    <div class="modal-body">
+      <img id="veure-recepta-imatge" class="veure-recepta-imatge" hidden>
+      <div id="veure-recepta-meta" class="meta mono"></div>
+      <p id="veure-recepta-link-wrap"><a id="veure-recepta-link" href="#" target="_blank" rel="noopener">Veure a Instagram ↗</a></p>
+      <label>Ingredients</label>
+      <ul id="veure-recepta-ingredients" class="veure-llista"></ul>
+      <label id="veure-recepta-passos-titol">Passos</label>
+      <ol id="veure-recepta-passos" class="veure-llista"></ol>
+    </div>
+  </div>
+</div>
+
+<div id="modal-confirm" class="modal-overlay">
+  <div class="modal" style="max-width: 400px;">
+    <div class="modal-body">
+      <p id="confirm-message" style="margin-top:0"></p>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button id="btn-confirm-no" class="btn btn-secondary">Cancel·la</button>
+        <button id="btn-confirm-yes" class="btn btn-danger">Confirma</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+</div>
+
+<!-- Firebase (compat SDK: la mateixa sintaxi collection().doc().onSnapshot() que fa servir aquesta app) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  const CATALAN_WEEKDAY = ["Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres", "Dissabte", "Diumenge"];
+
+  function fmtDate(d) {
+    const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
+  }
+  function addDays(dateStr, n) {
+    const parts = dateStr.split("-").map(Number);
+    const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+    dt.setDate(dt.getDate() + n);
+    return fmtDate(dt);
+  }
+  function weekdayName(dateStr) {
+    const parts = dateStr.split("-").map(Number);
+    const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+    const idx = (dt.getDay() + 6) % 7;
+    return CATALAN_WEEKDAY[idx];
+  }
+  function shortDate(dateStr) {
+    const parts = dateStr.split("-");
+    return parts[2] + "/" + parts[1];
+  }
+  function defaultStartDate() {
+    const today = new Date();
+    const dow = (today.getDay() + 6) % 7;
+    const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - dow);
+    const saturday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 5);
+    return fmtDate(saturday);
+  }
+  function periodDates(start) {
+    const arr = [];
+    for (let i = 0; i < 9; i++) arr.push(addDays(start, i));
+    return arr;
+  }
+
+  const UNICODE_FRACTIONS = { "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 / 3, "⅛": 0.125, "⅜": 0.375, "⅝": 0.625, "⅞": 0.875 };
+  const QUANTITY_RE = /^([^\d½¼¾⅓⅔⅛⅜⅝⅞]*)(\d+(?:[.,]\d+)?(?:\s*\/\s*\d+)?|[½¼¾⅓⅔⅛⅜⅝⅞])([\s\S]*)$/;
+
+  function parseNumber(tok) {
+    tok = tok.trim();
+    if (Object.prototype.hasOwnProperty.call(UNICODE_FRACTIONS, tok)) return UNICODE_FRACTIONS[tok];
+    if (tok.indexOf("/") !== -1) {
+      const parts = tok.split("/");
+      return parseFloat(parts[0]) / parseFloat(parts[1]);
+    }
+    return parseFloat(tok.replace(",", "."));
+  }
+  function formatNumber(v) {
+    if (Math.abs(v - Math.round(v)) < 1e-6) return String(Math.round(v));
+    return String(Math.round(v * 100) / 100);
+  }
+  function parseIngredientQuantity(text) {
+    const m = QUANTITY_RE.exec(text);
+    if (!m) return null;
+    const value = parseNumber(m[2]);
+    if (Number.isNaN(value)) return null;
+    return { prefix: m[1], value: value, rest: m[3] };
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str == null ? "" : str;
+    return div.innerHTML;
+  }
+  function formatDateTime(iso) {
+    const d = new Date(iso);
+    const pad = function (n) { return String(n).padStart(2, "0"); };
+    return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add("open"); }
+  function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+  // A Firebase, imatge_id ÉS la URL pública de descàrrega (no cal resoldre-la).
+  function imgSrc(id) { return id; }
+
+  let toastTimer = null;
+  function showToast(message, isError) {
+    const el = document.getElementById("toast");
+    el.textContent = message;
+    el.className = "toast show" + (isError ? " error" : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.className = "toast"; }, 4000);
+  }
+
+  function askConfirm(message) {
+    return new Promise(function (resolve) {
+      document.getElementById("confirm-message").textContent = message;
+      openModal("modal-confirm");
+      const btnYes = document.getElementById("btn-confirm-yes");
+      const btnNo = document.getElementById("btn-confirm-no");
+      function onYes() { cleanup(true); }
+      function onNo() { cleanup(false); }
+      function cleanup(result) {
+        btnYes.removeEventListener("click", onYes);
+        btnNo.removeEventListener("click", onNo);
+        closeModal("modal-confirm");
+        resolve(result);
+      }
+      btnYes.addEventListener("click", onYes);
+      btnNo.addEventListener("click", onNo);
+    });
+  }
+
+  document.querySelectorAll(".modal-close").forEach(function (btn) {
+    btn.addEventListener("click", function () { closeModal(btn.dataset.close); });
+  });
+  document.querySelectorAll(".modal-overlay").forEach(function (overlay) {
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) overlay.classList.remove("open"); });
+  });
+  document.querySelectorAll(".tab-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".tab-btn").forEach(function (b) { b.classList.remove("active"); });
+      document.querySelectorAll(".tab-panel").forEach(function (p) { p.classList.remove("active"); });
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // ---------- state ----------
+  let dbApi = null;
+  let assetsApi = null;
+  const PERSONES_PER_DEFECTE = 3;
+  let menuRef = null;
+  let shoppingRef = null;
+  let recipes = [];
+  let menuDoc = null;
+  let shoppingDoc = { generated_at: null, items: [] };
+  let slotOpen = null;
+  let editingRecipeId = null;
+  let originalImageId = null;
+  let currentImageId = null;
+
+  function recipeById(id) {
+    for (let i = 0; i < recipes.length; i++) if (recipes[i].id === id) return recipes[i];
+    return null;
+  }
+
+  // ---------- menu grid ----------
+  function renderMenu() {
+    const grid = document.getElementById("graella");
+    const rangeEl = document.getElementById("periode-rang");
+    if (!menuDoc) { grid.innerHTML = '<p class="hint">Carregant…</p>'; return; }
+    const dates = periodDates(menuDoc.start_date);
+    rangeEl.textContent = weekdayName(dates[0]) + " " + shortDate(dates[0]) + " — " + weekdayName(dates[8]) + " " + shortDate(dates[8]);
+    grid.innerHTML = "";
+
+    dates.forEach(function (dateStr) {
+      const col = document.createElement("div");
+      col.className = "dia-col";
+      const nomEl = document.createElement("div");
+      nomEl.className = "dia-nom";
+      nomEl.innerHTML = weekdayName(dateStr) + '<span class="dia-data">' + shortDate(dateStr) + "</span>";
+      col.appendChild(nomEl);
+
+      [["dinar", "Dinar"], ["sopar", "Sopar"]].forEach(function (pair) {
+        const key = pair[0], label = pair[1];
+        const dayData = menuDoc.days[dateStr] || {};
+        const slot = dayData[key];
+        const recipe = slot ? recipeById(slot.recipe_id) : null;
+
+        const casella = document.createElement("div");
+        casella.className = "casella " + key;
+
+        const apatLabel = document.createElement("div");
+        apatLabel.className = "apat-label";
+        apatLabel.textContent = label;
+        casella.appendChild(apatLabel);
+
+        if (recipe) {
+          if (recipe.imatge_id) {
+            const thumb = document.createElement("img");
+            thumb.className = "thumb-mini";
+            thumb.src = imgSrc(recipe.imatge_id);
+            thumb.alt = "";
+            casella.appendChild(thumb);
+          }
+
+          const nomRecepta = document.createElement("div");
+          nomRecepta.className = "recepta-nom";
+          nomRecepta.textContent = recipe.titol;
+          casella.appendChild(nomRecepta);
+
+          const veureBtn = document.createElement("button");
+          veureBtn.type = "button";
+          veureBtn.className = "recepta-link recepta-link-btn";
+          veureBtn.textContent = "Veure la recepta";
+          veureBtn.addEventListener("click", function (e) { e.stopPropagation(); openViewRecipeModal(recipe); });
+          casella.appendChild(veureBtn);
+
+          const personesEl = document.createElement("div");
+          personesEl.className = "persones-control";
+          personesEl.innerHTML = '<button type="button" class="persones-btn" data-delta="-1">−</button>' +
+            '<span class="persones-valor">👤 ' + slot.persones + "</span>" +
+            '<button type="button" class="persones-btn" data-delta="1">+</button>';
+          personesEl.addEventListener("click", function (e) { e.stopPropagation(); });
+          personesEl.querySelectorAll(".persones-btn").forEach(function (btn) {
+            btn.addEventListener("click", async function () {
+              const delta = parseInt(btn.dataset.delta, 10);
+              const nou = Math.max(1, slot.persones + delta);
+              const patch = { days: {} };
+              patch.days[dateStr] = {};
+              patch.days[dateStr][key] = { persones: nou };
+              try { await menuRef.update(patch); } catch (e) { console.error(e); }
+            });
+          });
+          casella.appendChild(personesEl);
+        } else {
+          const buit = document.createElement("div");
+          buit.className = "buit";
+          buit.textContent = "+ Afegeix";
+          casella.appendChild(buit);
+        }
+
+        casella.addEventListener("click", function () { openSlotModal(dateStr, key); });
+        col.appendChild(casella);
+      });
+
+      const dayData0 = menuDoc.days[dateStr] || {};
+      const notesEl = document.createElement("textarea");
+      notesEl.className = "dia-notes";
+      notesEl.placeholder = "Notes…";
+      notesEl.rows = 2;
+      notesEl.value = dayData0.notes || "";
+      notesEl.addEventListener("change", function () { saveNotes(dateStr, notesEl.value); });
+      notesEl.addEventListener("blur", function () { saveNotes(dateStr, notesEl.value); });
+      col.appendChild(notesEl);
+
+      grid.appendChild(col);
+    });
+  }
+
+  const notesTimers = {};
+  function saveNotes(dateStr, value) {
+    const dayData = (menuDoc && menuDoc.days[dateStr]) || {};
+    if ((dayData.notes || "") === value) return;
+    clearTimeout(notesTimers[dateStr]);
+    notesTimers[dateStr] = setTimeout(async function () {
+      const patch = { days: {} };
+      patch.days[dateStr] = { notes: value };
+      try { await menuRef.update(patch); } catch (e) { showToast("Error desant la nota: " + e.message, true); }
+    }, 300);
+  }
+
+  document.getElementById("btn-nova-setmana").addEventListener("click", async function () {
+    if (!menuDoc) return;
+    const ok = await askConfirm("Això avança al període de la setmana següent i buida totes les caselles (el receptari es manté). Continuar?");
+    if (!ok) return;
+    const nextStart = addDays(menuDoc.start_date, 7);
+    const days = {};
+    periodDates(nextStart).forEach(function (d) { days[d] = { dinar: null, sopar: null, notes: "" }; });
+    try { await menuRef.set({ start_date: nextStart, days: days }); } catch (e) { showToast("Error: " + e.message, true); }
+  });
+
+  // ---------- veure recepta (només lectura, des del menú) ----------
+  function openViewRecipeModal(recipe) {
+    document.getElementById("veure-recepta-titol").textContent = recipe.titol || "Recepta";
+    const img = document.getElementById("veure-recepta-imatge");
+    if (recipe.imatge_id) { img.src = imgSrc(recipe.imatge_id); img.hidden = false; } else { img.hidden = true; img.src = ""; }
+    document.getElementById("veure-recepta-meta").textContent =
+      "👤 " + (recipe.persones || 2) + " persones" + (recipe.temps ? " · " + recipe.temps : "");
+    const linkWrap = document.getElementById("veure-recepta-link-wrap");
+    const linkEl = document.getElementById("veure-recepta-link");
+    if (recipe.link) { linkEl.href = recipe.link; linkWrap.hidden = false; } else { linkWrap.hidden = true; }
+    const ingCont = document.getElementById("veure-recepta-ingredients");
+    ingCont.innerHTML = "";
+    (recipe.ingredients || []).forEach(function (ing) {
+      const li = document.createElement("li");
+      li.textContent = ing;
+      ingCont.appendChild(li);
+    });
+    const passos = recipe.passos || [];
+    const passosCont = document.getElementById("veure-recepta-passos");
+    const passosTitol = document.getElementById("veure-recepta-passos-titol");
+    passosCont.innerHTML = "";
+    passosTitol.hidden = passos.length === 0;
+    passosCont.hidden = passos.length === 0;
+    passos.forEach(function (p) {
+      const li = document.createElement("li");
+      li.textContent = p;
+      passosCont.appendChild(li);
+    });
+    openModal("modal-veure-recepta");
+  }
+
+  // ---------- slot modal ----------
+  function openSlotModal(dateStr, apat) {
+    slotOpen = { dia: dateStr, apat: apat };
+    document.getElementById("modal-slot-titol").textContent = weekdayName(dateStr) + " " + shortDate(dateStr) + " · " + (apat === "dinar" ? "Dinar" : "Sopar");
+    document.getElementById("cerca-recepta").value = "";
+    renderMiniLlista("");
+    openModal("modal-slot");
+  }
+
+  function renderMiniLlista(filtre) {
+    const cont = document.getElementById("modal-slot-llista");
+    cont.innerHTML = "";
+    const f = filtre.trim().toLowerCase();
+    const filtrades = recipes.filter(function (r) { return r.titol.toLowerCase().indexOf(f) !== -1; });
+    if (filtrades.length === 0) {
+      const p = document.createElement("p");
+      p.className = "hint";
+      p.textContent = recipes.length === 0 ? "Encara no hi ha cap recepta al receptari." : "Cap recepta coincideix amb la cerca.";
+      cont.appendChild(p);
+      return;
+    }
+    filtrades.forEach(function (r) {
+      const item = document.createElement("div");
+      item.className = "mini-item";
+      item.innerHTML = '<span class="mi-titol">' + escapeHtml(r.titol) + '</span><span class="mi-meta">👤 ' + (r.persones || 2) + "</span>";
+      item.addEventListener("click", function () { assignRecipe(slotOpen.dia, slotOpen.apat, r.id); });
+      cont.appendChild(item);
+    });
+  }
+  document.getElementById("cerca-recepta").addEventListener("input", function (e) { renderMiniLlista(e.target.value); });
+
+  async function assignRecipe(dateStr, apat, recipeId) {
+    const patch = { days: {} };
+    patch.days[dateStr] = {};
+    if (!recipeId) {
+      patch.days[dateStr][apat] = null;
+    } else {
+      patch.days[dateStr][apat] = { recipe_id: recipeId, persones: PERSONES_PER_DEFECTE };
+    }
+    try {
+      await menuRef.update(patch);
+      closeModal("modal-slot");
+    } catch (e) { showToast("Error: " + e.message, true); }
+  }
+
+  document.getElementById("btn-buida-slot").addEventListener("click", function () { assignRecipe(slotOpen.dia, slotOpen.apat, null); });
+  document.getElementById("btn-nova-des-de-slot").addEventListener("click", function () {
+    closeModal("modal-slot");
+    openRecipeModal(null);
+  });
+
+  // ---------- recipe modal ----------
+  function updateImatgePreview() {
+    const img = document.getElementById("imatge-preview");
+    const btnTreu = document.getElementById("btn-treu-imatge");
+    if (currentImageId) {
+      img.src = imgSrc(currentImageId);
+      img.hidden = false;
+      btnTreu.hidden = false;
+    } else {
+      img.hidden = true;
+      img.src = "";
+      btnTreu.hidden = true;
+    }
+  }
+
+  function netejaFormRecepta() {
+    document.getElementById("f-link").value = "";
+    document.getElementById("f-titol").value = "";
+    document.getElementById("f-persones").value = 2;
+    document.getElementById("f-temps").value = "";
+    document.getElementById("f-ingredients").value = "";
+    document.getElementById("f-passos").value = "";
+    document.getElementById("f-imatge").value = "";
+    document.getElementById("imatge-status").textContent = "";
+    document.getElementById("imatge-status").className = "hint";
+    originalImageId = null;
+    currentImageId = null;
+    updateImatgePreview();
+  }
+
+  function openRecipeModal(recipe) {
+    editingRecipeId = recipe ? recipe.id : null;
+    netejaFormRecepta();
+    document.getElementById("modal-recepta-titol").textContent = recipe ? "Edita la recepta" : "Nova recepta";
+    if (recipe) {
+      document.getElementById("f-link").value = recipe.link || "";
+      document.getElementById("f-titol").value = recipe.titol || "";
+      document.getElementById("f-persones").value = recipe.persones || 2;
+      document.getElementById("f-temps").value = recipe.temps || "";
+      document.getElementById("f-ingredients").value = (recipe.ingredients || []).join("\n");
+      document.getElementById("f-passos").value = (recipe.passos || []).join("\n");
+      originalImageId = recipe.imatge_id || null;
+      currentImageId = originalImageId;
+      updateImatgePreview();
+    }
+    document.getElementById("f-imatge").disabled = !assetsApi;
+    openModal("modal-recepta");
+  }
+  document.getElementById("btn-nova-recepta").addEventListener("click", function () { openRecipeModal(null); });
+
+  document.getElementById("f-imatge").addEventListener("change", async function (e) {
+    const file = e.target.files && e.target.files[0];
+    const status = document.getElementById("imatge-status");
+    if (!file) return;
+    if (!assetsApi) { status.textContent = "Aquesta funció no està disponible en aquesta vista."; status.className = "hint error"; return; }
+    status.textContent = "Pujant la imatge…";
+    status.className = "hint";
+    try {
+      const result = await assetsApi.upload(file);
+      currentImageId = result.id;
+      updateImatgePreview();
+      status.textContent = "Imatge pujada.";
+      status.className = "hint ok";
+    } catch (err) {
+      status.textContent = "Error pujant la imatge: " + (err.message || err.code || "desconegut");
+      status.className = "hint error";
+    }
+    e.target.value = "";
+  });
+
+  document.getElementById("btn-treu-imatge").addEventListener("click", function () {
+    currentImageId = null;
+    updateImatgePreview();
+  });
+
+  document.getElementById("btn-desa-recepta").addEventListener("click", async function () {
+    const payload = {
+      link: document.getElementById("f-link").value.trim(),
+      titol: document.getElementById("f-titol").value.trim(),
+      persones: parseInt(document.getElementById("f-persones").value, 10) || 2,
+      temps: document.getElementById("f-temps").value.trim(),
+      ingredients: document.getElementById("f-ingredients").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean),
+      passos: document.getElementById("f-passos").value.split("\n").map(function (s) { return s.trim(); }).filter(Boolean),
+      imatge_id: currentImageId || null,
+    };
+    if (!editingRecipeId) payload.created_at = new Date().toISOString();
+    if (!payload.titol) { showToast("Cal posar un nom a la recepta.", true); return; }
+    try {
+      let newId = editingRecipeId;
+      if (editingRecipeId) {
+        await dbApi.collection("recipes").doc(editingRecipeId).update(payload);
+      } else {
+        const ref = await dbApi.collection("recipes").add(payload);
+        newId = ref.id;
+      }
+      if (assetsApi && originalImageId && originalImageId !== currentImageId) {
+        assetsApi.delete(originalImageId).catch(function () {});
+      }
+      closeModal("modal-recepta");
+      if (slotOpen && !editingRecipeId) { await assignRecipe(slotOpen.dia, slotOpen.apat, newId); }
+      editingRecipeId = null;
+    } catch (e) { showToast("Error desant la recepta: " + e.message, true); }
+  });
+
+  // ---------- receptari ----------
+  function isPendent(r) {
+    return (r.ingredients || []).length === 0 || (r.passos || []).length === 0;
+  }
+  function receptariOrdenat() {
+    return recipes.slice().sort(function (a, b) {
+      const aPendent = isPendent(a);
+      const bPendent = isPendent(b);
+      if (aPendent !== bPendent) return aPendent ? -1 : 1;
+      const SENTINEL_NOU = "9999-99-99";
+      return (b.created_at || SENTINEL_NOU).localeCompare(a.created_at || SENTINEL_NOU);
+    });
+  }
+  function renderReceptari() {
+    const cont = document.getElementById("receptari-llista");
+    cont.innerHTML = "";
+    if (recipes.length === 0) {
+      cont.innerHTML = '<p class="hint">Encara no has afegit cap recepta. Fes clic a "Afegeix una recepta".</p>';
+      return;
+    }
+    receptariOrdenat().forEach(function (r) {
+      const sensePassos = (r.passos || []).length === 0;
+      const senseIngredients = (r.ingredients || []).length === 0;
+      const pendent = senseIngredients || sensePassos;
+
+      const card = document.createElement("div");
+      card.className = "recepta-card" + (pendent ? " pendent" : "");
+      card.innerHTML =
+        (pendent ? '<span class="badge-pendent">⚠ Pendent d\'omplir</span><br>' : "") +
+        (r.imatge_id ? '<img class="thumb" src="' + imgSrc(r.imatge_id) + '" alt="">' : "") +
+        "<h3>" + escapeHtml(r.titol) + "</h3>" +
+        '<div class="meta mono">👤 ' + (r.persones || 2) + " persones" + (r.temps ? " · " + escapeHtml(r.temps) : "") + "</div>" +
+        (r.link ? '<a href="' + escapeHtml(r.link) + '" target="_blank" rel="noopener">Veure a Instagram ↗</a>' : "") +
+        '<div class="meta">' + ((r.ingredients || []).length) + " ingredients" + (sensePassos ? " · sense passos" : "") + "</div>" +
+        '<div class="card-actions"><button data-action="edit">Edita</button><button data-action="delete">Elimina</button></div>';
+      card.querySelector('[data-action="edit"]').addEventListener("click", function () { openRecipeModal(r); });
+      card.querySelector('[data-action="delete"]').addEventListener("click", async function () {
+        const ok = await askConfirm('Eliminar la recepta "' + r.titol + '"? Es traurà també del menú si hi és assignada.');
+        if (!ok) return;
+        try {
+          if (menuDoc) {
+            const patch = { days: {} };
+            let touched = false;
+            Object.keys(menuDoc.days).forEach(function (dateStr) {
+              const day = menuDoc.days[dateStr];
+              const dayPatch = {};
+              ["dinar", "sopar"].forEach(function (apat) {
+                if (day[apat] && day[apat].recipe_id === r.id) { dayPatch[apat] = null; touched = true; }
+              });
+              if (Object.keys(dayPatch).length) patch.days[dateStr] = dayPatch;
+            });
+            if (touched) await menuRef.update(patch);
+          }
+          await dbApi.collection("recipes").doc(r.id).delete();
+          if (assetsApi && r.imatge_id) assetsApi.delete(r.imatge_id).catch(function () {});
+          showToast("Recepta eliminada.");
+        } catch (e) { showToast("Error eliminant la recepta: " + e.message, true); }
+      });
+      cont.appendChild(card);
+    });
+  }
+
+  // ---------- shopping list ----------
+  const PANTRY_KEYWORDS = [
+    "sal fina", "sal gruesa", "sal grossa", "sal",
+    "aigua", "agua",
+    "oli d'oliva", "oli de gira-sol", "oli",
+    "aceite de oliva", "aceite de girasol", "aceite",
+    "pebre negre", "pebre vermell", "pebre", "pimienta negra", "pimienta",
+    "orenga", "orégano", "comino", "canela", "pimentón",
+    "llorer", "laurel", "mostassa", "mostaza", "nuez moscada",
+    "especias", "espècies", "condiment", "condimento",
+    "hierbas aromáticas", "herbes aromàtiques", "hierbas provenzales", "herbes provençals",
+    "albahaca", "alfàbrega", "tomillo", "farigola", "romero", "romaní",
+    "perejil", "julivert", "cilantro", "coriandre", "eneldo",
+    "menta", "hierbabuena", "cebollino", "cibulet",
+    "azafrán", "safrà", "curry", "curri", "jengibre", "gingebre"
+  ];
+
+  function isLetterChar(ch) {
+    return /[a-zà-ÿ]/i.test(ch || "");
+  }
+  function isPantryBasic(text) {
+    const t = text.toLowerCase();
+    return PANTRY_KEYWORDS.some(function (kw) {
+      const idx = t.indexOf(kw);
+      if (idx === -1) return false;
+      const before = idx > 0 ? t[idx - 1] : "";
+      const after = idx + kw.length < t.length ? t[idx + kw.length] : "";
+      return !isLetterChar(before) && !isLetterChar(after);
+    });
+  }
+
+  function splitIngredientParts(text) {
+    const parts = text.split(/\s*,\s*|\s+y\s+|\s+i\s+/i).map(function (s) { return s.trim(); }).filter(Boolean);
+    return parts.length > 1 ? parts : [text];
+  }
+
+  function buildShoppingList() {
+    const recipesById = {};
+    recipes.forEach(function (r) { recipesById[r.id] = r; });
+    const agg = {};
+    const order = [];
+    Object.keys(menuDoc.days).forEach(function (dateStr) {
+      const day = menuDoc.days[dateStr];
+      ["dinar", "sopar"].forEach(function (apat) {
+        const slot = day[apat];
+        if (!slot) return;
+        const recipe = recipesById[slot.recipe_id];
+        if (!recipe) return;
+        const base = recipe.persones || 2;
+        const factor = (slot.persones || base) / base;
+        (recipe.ingredients || []).forEach(function (ingredient, idx) {
+          const text = ingredient.trim();
+          if (!text) return;
+          const key = slot.recipe_id + "#" + idx;
+          if (!agg[key]) {
+            agg[key] = { recipe_titol: recipe.titol, template: text, parsed: parseIngredientQuantity(text), total_value: 0, uses: 0 };
+            order.push(key);
+          }
+          agg[key].uses += 1;
+          if (agg[key].parsed) agg[key].total_value += agg[key].parsed.value * factor;
+        });
+      });
+    });
+    const items = [];
+    order.forEach(function (key) {
+      const e = agg[key];
+      let text;
+      if (e.parsed) text = e.parsed.prefix + formatNumber(e.total_value) + e.parsed.rest;
+      else text = e.template;
+      const parts = e.parsed ? [text] : splitIngredientParts(text);
+      parts.forEach(function (partText) {
+        const basic = isPantryBasic(partText);
+        items.push({
+          text: partText,
+          count: e.uses,
+          recipes: [{ titol: e.recipe_titol, vegades: e.uses }],
+          marcat: false,
+          basic: basic,
+          status: basic ? "pending" : "added",
+        });
+      });
+    });
+    return items;
+  }
+
+  document.getElementById("btn-genera-llista").addEventListener("click", async function () {
+    if (!menuDoc) return;
+    const items = buildShoppingList();
+    try { await shoppingRef.set({ generated_at: new Date().toISOString(), items: items }); }
+    catch (e) { showToast("Error generant la llista: " + e.message, true); }
+  });
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      if (ok) resolve(); else reject(new Error("copy-failed"));
+    });
+  }
+
+  document.getElementById("btn-selecciona-tot").addEventListener("click", async function () {
+    const items = shoppingDoc.items || [];
+    const principals = items.filter(function (it) { return !it.basic || it.status === "added"; });
+    const vistos = {};
+    const linies = [];
+    principals.forEach(function (it) {
+      const key = it.text.trim().toLowerCase();
+      if (vistos[key]) return;
+      vistos[key] = true;
+      linies.push(it.text.trim());
+    });
+    if (linies.length === 0) { showToast("Encara no hi ha cap ingredient a la llista.", true); return; }
+    try {
+      await copyText(linies.join("\n"));
+      showToast("Copiats " + linies.length + " ingredients al porta-retalls.");
+    } catch (e) {
+      showToast("No s'ha pogut copiar automàticament. Selecciona el text manualment.", true);
+    }
+  });
+
+  document.getElementById("btn-neteja-marcats").addEventListener("click", async function () {
+    const items = (shoppingDoc.items || []).map(function (it) { return Object.assign({}, it, { marcat: false }); });
+    try { await shoppingRef.set({ generated_at: shoppingDoc.generated_at, items: items }); }
+    catch (e) { showToast("Error: " + e.message, true); }
+  });
+
+  async function toggleMarcat(index) {
+    const items = shoppingDoc.items.map(function (it, i) { return i === index ? Object.assign({}, it, { marcat: !it.marcat }) : it; });
+    try { await shoppingRef.set({ generated_at: shoppingDoc.generated_at, items: items }); }
+    catch (e) { showToast("Error: " + e.message, true); }
+  }
+
+  async function setBasicStatus(index, status) {
+    const items = shoppingDoc.items.map(function (it, i) { return i === index ? Object.assign({}, it, { status: status }) : it; });
+    try { await shoppingRef.set({ generated_at: shoppingDoc.generated_at, items: items }); }
+    catch (e) { showToast("Error: " + e.message, true); }
+  }
+
+  function renderShopping() {
+    const list = document.getElementById("llista-compra");
+    const buida = document.getElementById("llista-buida");
+    const generatedEl = document.getElementById("llista-generada-el");
+    const blocBasics = document.getElementById("bloc-basics");
+    const listBasics = document.getElementById("llista-basics");
+    list.innerHTML = "";
+    listBasics.innerHTML = "";
+    generatedEl.textContent = shoppingDoc.generated_at ? "Generada el " + formatDateTime(shoppingDoc.generated_at) : "";
+    const items = shoppingDoc.items || [];
+    if (items.length === 0) { buida.style.display = "block"; blocBasics.style.display = "none"; return; }
+    buida.style.display = "none";
+
+    const withIndex = items.map(function (it, i) { return { it: it, i: i }; });
+    const mainEntries = withIndex.filter(function (p) { return !p.it.basic || p.it.status === "added"; });
+    const basicEntries = withIndex.filter(function (p) { return p.it.basic && p.it.status !== "added" && p.it.status !== "dismissed"; });
+
+    const ordered = mainEntries.sort(function (a, b) {
+      if (a.it.marcat === b.it.marcat) return a.i - b.i;
+      return a.it.marcat ? 1 : -1;
+    });
+    ordered.forEach(function (pair) {
+      const it = pair.it, i = pair.i;
+      const li = document.createElement("li");
+      if (it.marcat) li.classList.add("marcat");
+      const detall = it.recipes.map(function (r) { return r.vegades > 1 ? r.titol + " ×" + r.vegades : r.titol; }).join(", ");
+      const comptador = it.count > 1 ? '<span class="item-comptador">×' + it.count + "</span>" : "";
+      const basicTag = it.basic ? ' <span class="item-comptador" style="color:var(--muted)">(bàsic)</span>' : "";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = !!it.marcat;
+      checkbox.addEventListener("change", function () { toggleMarcat(i); });
+      const cos = document.createElement("div");
+      cos.className = "item-cos";
+      cos.innerHTML = '<span class="item-text">' + escapeHtml(it.text) + comptador + basicTag + '</span><span class="item-recipes">' + escapeHtml(detall) + "</span>";
+      li.appendChild(checkbox);
+      li.appendChild(cos);
+      list.appendChild(li);
+    });
+
+    if (basicEntries.length === 0) {
+      blocBasics.style.display = "none";
+    } else {
+      blocBasics.style.display = "block";
+      basicEntries.forEach(function (pair) {
+        const it = pair.it, i = pair.i;
+        const li = document.createElement("li");
+        const detall = it.recipes.map(function (r) { return r.vegades > 1 ? r.titol + " ×" + r.vegades : r.titol; }).join(", ");
+        const cos = document.createElement("div");
+        cos.className = "item-cos";
+        cos.innerHTML = '<span class="item-text">' + escapeHtml(it.text) + '</span><span class="item-recipes">' + escapeHtml(detall) + "</span>";
+        const actions = document.createElement("div");
+        actions.className = "basic-actions";
+        actions.innerHTML = '<button type="button" class="btn-afegeix">Afegeix a la compra</button><button type="button" class="btn-elimina">Ja en tinc</button>';
+        actions.querySelector(".btn-afegeix").addEventListener("click", function () { setBasicStatus(i, "added"); });
+        actions.querySelector(".btn-elimina").addEventListener("click", function () { setBasicStatus(i, "dismissed"); });
+        li.appendChild(cos);
+        li.appendChild(actions);
+        listBasics.appendChild(li);
+      });
+    }
+  }
+
+  // ---------- assets (Firebase Storage) ----------
+  function makeAssetsApi(storage) {
+    return {
+      upload: function (file) {
+        const path = "recipe-images/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "-" + file.name;
+        const ref = storage.ref(path);
+        return ref.put(file).then(function (snapshot) {
+          return snapshot.ref.getDownloadURL();
+        }).then(function (url) {
+          return { id: url };
+        });
+      },
+      delete: function (url) {
+        try { return storage.refFromURL(url).delete(); } catch (e) { return Promise.resolve(); }
+      }
+    };
+  }
+
+  // ---------- boot ----------
+  (function boot() {
+    if (!window.MENU_SETMANAL_FIREBASE_CONFIG) {
+      document.getElementById("app").innerHTML = '<p class="hint" style="padding:40px 0">Falta el fitxer <code>firebase-config.js</code> amb la configuració de Firebase. Crea\'l a partir de <code>firebase-config.example.js</code>.</p>';
+      return;
+    }
+    firebase.initializeApp(window.MENU_SETMANAL_FIREBASE_CONFIG);
+    dbApi = firebase.firestore();
+    assetsApi = makeAssetsApi(firebase.storage());
+
+    menuRef = dbApi.doc("menu/current");
+    shoppingRef = dbApi.doc("shopping/current");
+
+    dbApi.collection("recipes").onSnapshot(function (snap) {
+      recipes = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      renderMenu();
+      renderReceptari();
+    }, function (e) { console.error(e); showToast("Error llegint les receptes: " + e.message, true); });
+
+    menuRef.onSnapshot(async function (snap) {
+      if (!snap.exists) {
+        const start = defaultStartDate();
+        const days = {};
+        periodDates(start).forEach(function (d) { days[d] = { dinar: null, sopar: null, notes: "" }; });
+        try { await menuRef.set({ start_date: start, days: days }); } catch (e) { console.error(e); }
+        return;
+      }
+      menuDoc = snap.data();
+      renderMenu();
+    }, function (e) { console.error(e); showToast("Error llegint el menú: " + e.message, true); });
+
+    shoppingRef.onSnapshot(function (snap) {
+      shoppingDoc = snap.exists ? snap.data() : { generated_at: null, items: [] };
+      renderShopping();
+    }, function (e) { console.error(e); });
+  })();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // App personal, sense login propi: tothom amb l'enllaç pot llegir i
+    // escriure. És un compromís conscient per evitar haver de construir un
+    // sistema d'autenticació només per a aquesta app. Si mai vols tancar-ho
+    // més, es pot afegir Firebase Auth (p. ex. amb enllaç per email) i
+    // restringir aquestes regles a `request.auth != null`.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
