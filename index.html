@@ -649,6 +649,7 @@ main {
   let editingRecipeId = null;
   let originalImageId = null;
   let currentImageId = null;
+  let imatgePujantPromise = null;
 
   function recipeById(id) {
     for (let i = 0; i < recipes.length; i++) if (recipes[i].id === id) return recipes[i];
@@ -869,6 +870,7 @@ main {
     document.getElementById("imatge-status").className = "hint";
     originalImageId = null;
     currentImageId = null;
+    imatgePujantPromise = null;
     updateImatgePreview();
   }
 
@@ -892,23 +894,30 @@ main {
   }
   document.getElementById("btn-nova-recepta").addEventListener("click", function () { openRecipeModal(null); });
 
-  document.getElementById("f-imatge").addEventListener("change", async function (e) {
+  document.getElementById("f-imatge").addEventListener("change", function (e) {
     const file = e.target.files && e.target.files[0];
     const status = document.getElementById("imatge-status");
     if (!file) return;
     if (!assetsApi) { status.textContent = "Aquesta funció no està disponible en aquesta vista."; status.className = "hint error"; return; }
+    if (file.size > 10 * 1024 * 1024) {
+      status.textContent = "La imatge pesa massa (màxim 10 MB). Prova amb una altra o redueix-ne la qualitat.";
+      status.className = "hint error";
+      e.target.value = "";
+      return;
+    }
     status.textContent = "Pujant la imatge…";
     status.className = "hint";
-    try {
-      const result = await assetsApi.upload(file);
+    imatgePujantPromise = assetsApi.upload(file).then(function (result) {
       currentImageId = result.id;
       updateImatgePreview();
       status.textContent = "Imatge pujada.";
       status.className = "hint ok";
-    } catch (err) {
+    }).catch(function (err) {
       status.textContent = "Error pujant la imatge: " + (err.message || err.code || "desconegut");
       status.className = "hint error";
-    }
+    }).finally(function () {
+      imatgePujantPromise = null;
+    });
     e.target.value = "";
   });
 
@@ -918,6 +927,12 @@ main {
   });
 
   document.getElementById("btn-desa-recepta").addEventListener("click", async function () {
+    if (imatgePujantPromise) {
+      const status = document.getElementById("imatge-status");
+      status.textContent = "Esperant que acabi de pujar la imatge…";
+      status.className = "hint";
+      try { await imatgePujantPromise; } catch (e) {}
+    }
     const payload = {
       link: document.getElementById("f-link").value.trim(),
       titol: document.getElementById("f-titol").value.trim(),
