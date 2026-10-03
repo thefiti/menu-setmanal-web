@@ -731,7 +731,7 @@ main {
           veureBtn.type = "button";
           veureBtn.className = "recepta-link recepta-link-btn";
           veureBtn.textContent = "Veure la recepta";
-          veureBtn.addEventListener("click", function (e) { e.stopPropagation(); openViewRecipeModal(recipe); });
+          veureBtn.addEventListener("click", function (e) { e.stopPropagation(); openViewRecipeModal(recipe, slot.persones); });
           casella.appendChild(veureBtn);
 
           const personesEl = document.createElement("div");
@@ -799,12 +799,15 @@ main {
   });
 
   // ---------- veure recepta (només lectura, des del menú) ----------
-  function openViewRecipeModal(recipe) {
+  function openViewRecipeModal(recipe, slotPersones) {
     document.getElementById("veure-recepta-titol").textContent = recipe.titol || "Recepta";
     const img = document.getElementById("veure-recepta-imatge");
     if (recipe.imatge_id) { img.src = imgSrc(recipe.imatge_id); img.hidden = false; } else { img.hidden = true; img.src = ""; }
+    const base = recipe.persones || 2;
+    const persones = slotPersones || base;
+    const factor = persones / base;
     document.getElementById("veure-recepta-meta").textContent =
-      "👤 " + (recipe.persones || 2) + " persones" + (recipe.temps ? " · " + recipe.temps : "");
+      "👤 " + persones + " persones" + (persones !== base ? " (recepta original: " + base + ")" : "") + (recipe.temps ? " · " + recipe.temps : "");
     const linkWrap = document.getElementById("veure-recepta-link-wrap");
     const linkEl = document.getElementById("veure-recepta-link");
     if (recipe.link) { linkEl.href = recipe.link; linkWrap.hidden = false; } else { linkWrap.hidden = true; }
@@ -812,7 +815,8 @@ main {
     ingCont.innerHTML = "";
     (recipe.ingredients || []).forEach(function (ing) {
       const li = document.createElement("li");
-      li.textContent = ing;
+      const parsed = factor !== 1 ? parseIngredientQuantity(ing.trim()) : null;
+      li.textContent = parsed ? parsed.prefix + formatNumber(parsed.value * factor) + parsed.rest : ing;
       ingCont.appendChild(li);
     });
     const passos = recipe.passos || [];
