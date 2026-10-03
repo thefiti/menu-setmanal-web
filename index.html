@@ -98,11 +98,20 @@ h1, h2, .dia-nom, .recepta-card h3 {
   font-weight: 600;
 }
 
+.sync-row { display: flex; justify-content: space-between; align-items: baseline; gap: 4px 12px; flex-wrap: wrap; }
 .sync-status {
   display: block;
   margin: 2px 0 12px;
   font-size: 0.72rem;
 }
+
+.login {
+  position: fixed; inset: 0; z-index: 200; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; padding: 24px; text-align: center;
+}
+.login h1 { margin: 0; }
+.login .hint { max-width: 320px; }
 
 .tabs {
   display: flex;
@@ -359,7 +368,14 @@ main {
 </head>
 <body>
 
-<div id="app">
+<div id="login" class="login" hidden>
+  <h1>Menú Setmanal</h1>
+  <p id="login-msg" class="hint">Entra amb el teu compte de Google per continuar.</p>
+  <button id="btn-login" class="btn btn-primary" type="button">Entra amb Google</button>
+  <button id="btn-login-logout" class="btn btn-secondary" type="button" hidden>Tanca sessió</button>
+</div>
+
+<div id="app" hidden>
 
 <header class="topbar">
   <h1>Menú Setmanal</h1>
@@ -368,7 +384,10 @@ main {
     <button class="tab-btn" data-tab="compra">Llista de la compra</button>
     <button class="tab-btn" data-tab="receptari">Receptari</button>
   </nav>
-  <span id="sync-status" class="hint mono sync-status" title="Aquesta web i l'Artifact de Claude se sincronitzen automàticament cada 15 minuts."></span>
+  <div class="sync-row">
+    <span id="sync-status" class="hint mono sync-status" title="Les receptes noves de l'Artifact de Claude arriben aquí automàticament cada 15 minuts."></span>
+    <span class="hint mono sync-status"><span id="user-email"></span> <button id="btn-logout" type="button" class="recepta-link recepta-link-btn">Tanca sessió</button></span>
+  </div>
 </header>
 
 <main>
@@ -504,6 +523,7 @@ main {
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="firebase-config.js"></script>
 
 <script>
@@ -1315,13 +1335,80 @@ main {
     menuRef = dbApi.doc("menu/current");
     shoppingRef = dbApi.doc("shopping/current");
 
-    dbApi.collection("recipes").onSnapshot(function (snap) {
+    const auth = firebase.auth();
+    const appEl = document.getElementById("app");
+    const loginEl = document.getElementById("login");
+    const loginMsg = document.getElementById("login-msg");
+    const btnLogin = document.getElementById("btn-login");
+    const btnLoginLogout = document.getElementById("btn-login-logout");
+    let unsubs = [];
+    let started = false;
+    let syncTimer = null;
+
+    function showLogin(msg, isError, mostraSortir) {
+      loginEl.hidden = false;
+      loginMsg.textContent = msg || "Entra amb el teu compte de Google per continuar.";
+      loginMsg.className = "hint" + (isError ? " error" : "");
+      btnLogin.hidden = !!mostraSortir;
+      btnLoginLogout.hidden = !mostraSortir;
+    }
+    function stopApp() {
+      unsubs.forEach(function (u) { try { u(); } catch (e) {} });
+      unsubs = [];
+      started = false;
+    }
+    function accessDenied() {
+      stopApp();
+      const u = auth.currentUser;
+      appEl.hidden = true;
+      showLogin("El compte " + (u && u.email ? u.email : "") + " no té accés a aquesta aplicació. Demana que t'hi afegeixin o entra amb un altre compte.", true, true);
+    }
+    function listen(target, onNext, onError) {
+      unsubs.push(target.onSnapshot(onNext, function (e) {
+        if (e && e.code === "permission-denied") { accessDenied(); return; }
+        onError(e);
+      }));
+    }
+
+    btnLogin.addEventListener("click", function () {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      auth.signInWithPopup(provider).catch(function (e) {
+        if (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment") {
+          auth.signInWithRedirect(provider);
+        } else if (e.code !== "auth/popup-closed-by-user" && e.code !== "auth/cancelled-popup-request") {
+          showLogin("No s'ha pogut iniciar la sessió: " + e.message, true, false);
+        }
+      });
+    });
+    function sortir() { auth.signOut(); }
+    btnLoginLogout.addEventListener("click", sortir);
+    document.getElementById("btn-logout").addEventListener("click", sortir);
+
+    auth.onAuthStateChanged(function (user) {
+      if (!user) {
+        stopApp();
+        appEl.hidden = true;
+        showLogin("", false, false);
+        return;
+      }
+      loginEl.hidden = true;
+      appEl.hidden = false;
+      document.getElementById("user-email").textContent = user.email || "";
+      startApp();
+    });
+
+    function startApp() {
+    if (started) return;
+    started = true;
+
+    listen(dbApi.collection("recipes"), function (snap) {
       recipes = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       renderMenu();
       renderReceptari();
     }, function (e) { console.error(e); showToast("Error llegint les receptes: " + e.message, true); });
 
-    menuRef.onSnapshot(async function (snap) {
+    listen(menuRef, async function (snap) {
       if (!snap.exists) {
         const start = defaultStartDate();
         const days = {};
@@ -1333,7 +1420,7 @@ main {
       renderMenu();
     }, function (e) { console.error(e); showToast("Error llegint el menú: " + e.message, true); });
 
-    shoppingRef.onSnapshot(function (snap) {
+    listen(shoppingRef, function (snap) {
       shoppingDoc = snap.exists ? snap.data() : { generated_at: null, items: [] };
       renderShopping();
     }, function (e) { console.error(e); });
@@ -1350,11 +1437,13 @@ main {
       else text = "Sincronitzat fa " + Math.round(minuts / 60) + " h";
       el.textContent = text;
     }
-    dbApi.doc("meta/sync").onSnapshot(function (snap) {
+    listen(dbApi.doc("meta/sync"), function (snap) {
       lastSyncAt = (snap.exists && snap.data().last_sync) ? new Date(snap.data().last_sync) : null;
       renderSyncStatus();
     }, function (e) { console.error(e); });
-    setInterval(renderSyncStatus, 30000);
+    clearInterval(syncTimer);
+    syncTimer = setInterval(renderSyncStatus, 30000);
+    }
   })();
 })();
 </script>

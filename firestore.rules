@@ -1,13 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // App personal, sense login propi: tothom amb l'enllaç pot llegir i
-    // escriure. És un compromís conscient per evitar haver de construir un
-    // sistema d'autenticació només per a aquesta app. Si mai vols tancar-ho
-    // més, es pot afegir Firebase Auth (p. ex. amb enllaç per email) i
-    // restringir aquestes regles a `request.auth != null`.
+    // Nomes poden llegir i escriure els comptes de Google de la llista.
+    // El marcador __ALLOWED_EMAILS__ es substitueix en desplegar-les
+    // (migration/deploy-rules.ps1) per la llista de migration/allowed-emails.txt,
+    // que no es puja a git perque el repositori es public.
+    function permes() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in [__ALLOWED_EMAILS__];
+    }
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if permes();
     }
   }
 }
