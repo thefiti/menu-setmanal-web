@@ -172,6 +172,8 @@ main {
   flex-direction: column;
 }
 
+.dia-col.avui { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); scroll-margin-top: 110px; }
+
 .dia-nom {
   text-align: center;
   font-weight: 600;
@@ -296,7 +298,9 @@ main {
 .hint.error { color: var(--danger); }
 .hint.ok { color: var(--accent); }
 
-.receptari-mini-llista { max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+.receptari-mini-llista { max-height: min(46vh, 380px); overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin: 10px 0; }
+.mini-item { min-height: 44px; }
+.mini-item.crea { border-style: dashed; border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .mini-item {
   display: flex; justify-content: space-between; align-items: center;
   padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
@@ -535,6 +539,7 @@ main {
     const saturday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 5);
     return fmtDate(saturday);
   }
+  function todayStr() { return fmtDate(new Date()); }
   function periodDates(start) {
     const arr = [];
     for (let i = 0; i < 9; i++) arr.push(addDays(start, i));
@@ -653,6 +658,8 @@ main {
   let menuDoc = null;
   let shoppingDoc = { generated_at: null, items: [] };
   let slotOpen = null;
+  let novaDesDeSlot = null;
+  let scrolledToToday = false;
   let editingRecipeId = null;
   let originalImageId = null;
   let currentImageId = null;
@@ -674,10 +681,10 @@ main {
 
     dates.forEach(function (dateStr) {
       const col = document.createElement("div");
-      col.className = "dia-col";
+      col.className = "dia-col" + (dateStr === todayStr() ? " avui" : "");
       const nomEl = document.createElement("div");
       nomEl.className = "dia-nom";
-      nomEl.innerHTML = weekdayName(dateStr) + '<span class="dia-data">' + shortDate(dateStr) + "</span>";
+      nomEl.innerHTML = weekdayName(dateStr) + (dateStr === todayStr() ? " · avui" : "") + '<span class="dia-data">' + shortDate(dateStr) + "</span>";
       col.appendChild(nomEl);
 
       [["dinar", "Dinar"], ["sopar", "Sopar"]].forEach(function (pair) {
@@ -695,14 +702,6 @@ main {
         casella.appendChild(apatLabel);
 
         if (recipe) {
-          if (recipe.imatge_id) {
-            const thumb = document.createElement("img");
-            thumb.className = "thumb-mini";
-            thumb.src = imgSrc(recipe.imatge_id);
-            thumb.alt = "";
-            casella.appendChild(thumb);
-          }
-
           const nomRecepta = document.createElement("div");
           nomRecepta.className = "recepta-nom";
           nomRecepta.textContent = recipe.titol;
@@ -752,6 +751,11 @@ main {
 
       grid.appendChild(col);
     });
+
+    if (!scrolledToToday) {
+      const avui = grid.querySelector(".dia-col.avui");
+      if (avui) { scrolledToToday = true; avui.scrollIntoView({ block: "start" }); }
+    }
   }
 
   const notesTimers = {};
@@ -817,9 +821,20 @@ main {
   function renderMiniLlista(filtre) {
     const cont = document.getElementById("modal-slot-llista");
     cont.innerHTML = "";
-    const f = filtre.trim().toLowerCase();
-    const filtrades = recipes.filter(function (r) { return r.titol.toLowerCase().indexOf(f) !== -1; });
+    const text = filtre.trim();
+    const f = text.toLowerCase();
+    const SENTINEL_NOU = "9999-99-99";
+    const filtrades = recipes.filter(function (r) { return r.titol.toLowerCase().indexOf(f) !== -1; })
+      .sort(function (a, b) { return (b.created_at || SENTINEL_NOU).localeCompare(a.created_at || SENTINEL_NOU); });
+    if (text && !recipes.some(function (r) { return r.titol.trim().toLowerCase() === f; })) {
+      const crea = document.createElement("div");
+      crea.className = "mini-item crea";
+      crea.textContent = "➕ Crea «" + text + "» i afegeix-la";
+      crea.addEventListener("click", function () { creaRecepteRapida(text); });
+      cont.appendChild(crea);
+    }
     if (filtrades.length === 0) {
+      if (text) return;
       const p = document.createElement("p");
       p.className = "hint";
       p.textContent = recipes.length === 0 ? "Encara no hi ha cap recepta al receptari." : "Cap recepta coincideix amb la cerca.";
@@ -836,6 +851,18 @@ main {
   }
   document.getElementById("cerca-recepta").addEventListener("input", function (e) { renderMiniLlista(e.target.value); });
 
+  async function creaRecepteRapida(titol) {
+    if (!slotOpen) return;
+    const slot = { dia: slotOpen.dia, apat: slotOpen.apat };
+    try {
+      const ref = await dbApi.collection("recipes").add({
+        titol: titol, link: "", persones: PERSONES_PER_DEFECTE, temps: "",
+        ingredients: [], passos: [], imatge_id: null, created_at: new Date().toISOString(),
+      });
+      await assignRecipe(slot.dia, slot.apat, ref.id);
+    } catch (e) { showToast("Error: " + e.message, true); }
+  }
+
   async function assignRecipe(dateStr, apat, recipeId) {
     const value = recipeId ? { recipe_id: recipeId, persones: PERSONES_PER_DEFECTE } : null;
     try {
@@ -846,6 +873,7 @@ main {
 
   document.getElementById("btn-buida-slot").addEventListener("click", function () { assignRecipe(slotOpen.dia, slotOpen.apat, null); });
   document.getElementById("btn-nova-des-de-slot").addEventListener("click", function () {
+    novaDesDeSlot = slotOpen ? { dia: slotOpen.dia, apat: slotOpen.apat } : null;
     closeModal("modal-slot");
     openRecipeModal(null);
   });
@@ -899,7 +927,7 @@ main {
     document.getElementById("f-imatge").disabled = !assetsApi;
     openModal("modal-recepta");
   }
-  document.getElementById("btn-nova-recepta").addEventListener("click", function () { openRecipeModal(null); });
+  document.getElementById("btn-nova-recepta").addEventListener("click", function () { novaDesDeSlot = null; openRecipeModal(null); });
 
   document.getElementById("f-imatge").addEventListener("change", function (e) {
     const file = e.target.files && e.target.files[0];
@@ -965,7 +993,7 @@ main {
         assetsApi.delete(originalImageId).catch(function () {});
       }
       closeModal("modal-recepta");
-      if (slotOpen && !editingRecipeId) { await assignRecipe(slotOpen.dia, slotOpen.apat, newId); }
+      if (novaDesDeSlot && !editingRecipeId) { const s = novaDesDeSlot; novaDesDeSlot = null; await assignRecipe(s.dia, s.apat, newId); }
       editingRecipeId = null;
     } catch (e) { showToast("Error desant la recepta: " + e.message, true); }
   });
