@@ -404,10 +404,6 @@ main {
     <button class="tab-btn" data-tab="compra">Llista de la compra</button>
     <button class="tab-btn" data-tab="receptari">Receptari</button>
   </nav>
-  <div class="sync-row">
-    <span id="sync-status" class="hint mono sync-status" title="Les receptes noves de l'Artifact de Claude arriben aquí automàticament cada 15 minuts."></span>
-    <span class="hint mono sync-status"><span id="user-email"></span> <button id="btn-logout" type="button" class="recepta-link recepta-link-btn">Tanca sessió</button></span>
-  </div>
 </header>
 
 <main>
@@ -437,6 +433,10 @@ main {
   </section>
 
   <section id="tab-receptari" class="tab-panel">
+    <div class="sync-row">
+      <span id="sync-status" class="hint mono sync-status" title="Les receptes noves de l'Artifact de Claude arriben aquí automàticament cada 15 minuts."></span>
+      <span class="hint mono sync-status"><span id="user-email"></span> <button id="btn-logout" type="button" class="recepta-link recepta-link-btn">Tanca sessió</button></span>
+    </div>
     <div class="panel-actions">
       <button id="btn-nova-recepta" class="btn btn-primary">Afegeix una recepta</button>
     </div>
@@ -700,6 +700,18 @@ main {
   let slotOpen = null;
   let novaDesDeSlot = null;
   let scrolledToToday = false;
+  let userMoved = false;
+  ["touchstart", "wheel", "keydown", "mousedown"].forEach(function (ev) {
+    window.addEventListener(ev, function () { userMoved = true; }, { passive: true, once: true });
+  });
+  // Posa el dia d'avui just sota la capçalera enganxada, comptant la seva alçada real.
+  function scrollToToday() {
+    const avui = document.querySelector("#graella .dia-col.avui");
+    if (!avui) return;
+    const bar = document.querySelector(".topbar");
+    const y = avui.getBoundingClientRect().top + window.scrollY - (bar ? bar.offsetHeight : 0) - 10;
+    window.scrollTo(0, Math.max(0, y));
+  }
   let editingRecipeId = null;
   let originalImageId = null;
   let currentImageId = null;
@@ -794,7 +806,14 @@ main {
 
     if (!scrolledToToday) {
       const avui = grid.querySelector(".dia-col.avui");
-      if (avui) { scrolledToToday = true; avui.scrollIntoView({ block: "start" }); }
+      if (avui) {
+        scrolledToToday = true;
+        scrollToToday();
+        // Les fonts i les imatges poden canviar l'alçada de la pàgina després; es torna a ajustar
+        // mentre l'usuari encara no hagi tocat la pantalla.
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (!userMoved) scrollToToday(); });
+        setTimeout(function () { if (!userMoved) scrollToToday(); }, 700);
+      }
     }
   }
 
