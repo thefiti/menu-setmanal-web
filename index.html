@@ -1056,7 +1056,8 @@ main {
         '<div class="meta mono">👤 ' + (r.persones || 2) + " persones" + (r.temps ? " · " + escapeHtml(r.temps) : "") + "</div>" +
         (r.link ? '<a href="' + escapeHtml(r.link) + '" target="_blank" rel="noopener">Veure a Instagram ↗</a>' : "") +
         '<div class="meta">' + ((r.ingredients || []).length) + " ingredients" + (sensePassos ? " · sense passos" : "") + "</div>" +
-        '<div class="card-actions"><button data-action="edit">Edita</button><button data-action="delete">Elimina</button></div>';
+        '<div class="card-actions"><button data-action="view">Veure</button><button data-action="edit">Edita</button><button data-action="delete">Elimina</button></div>';
+      card.querySelector('[data-action="view"]').addEventListener("click", function () { openViewRecipeModal(r); });
       card.querySelector('[data-action="edit"]').addEventListener("click", function () { openRecipeModal(r); });
       card.querySelector('[data-action="delete"]').addEventListener("click", async function () {
         const ok = await askConfirm('Eliminar la recepta "' + r.titol + '"? Es traurà també del menú si hi és assignada.');
