@@ -235,6 +235,21 @@ main {
 }
 .persones-btn:hover { background: var(--surface-alt); }
 
+.btn-veure {
+  display: block; width: 100%; margin-top: 6px; padding: 7px 10px;
+  border: 1px solid var(--accent); background: transparent; color: var(--accent);
+  border-radius: 8px; font-weight: 600; font-size: 0.82rem; line-height: 1.2; font-family: inherit; cursor: pointer; text-align: center;
+}
+.btn-veure:active { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+/* Mobil i tauleta: botons grans (>=44px) i ben separats, perque no es toquin sense voler */
+@media (max-width: 1100px) {
+  .btn-veure { margin-top: 10px; padding: 12px 14px; min-height: 46px; font-size: 0.95rem; }
+  .persones-control { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--border); justify-content: space-between; gap: 12px; }
+  .persones-btn { width: 46px; height: 46px; font-size: 1.4rem; border-radius: 10px; }
+  .persones-valor { font-size: 1rem; }
+}
+
 .dia-notes {
   border: none;
   border-top: 1px solid var(--border);
@@ -734,7 +749,7 @@ main {
 
           const veureBtn = document.createElement("button");
           veureBtn.type = "button";
-          veureBtn.className = "recepta-link recepta-link-btn";
+          veureBtn.className = "btn-veure";
           veureBtn.textContent = "Veure la recepta";
           veureBtn.addEventListener("click", function (e) { e.stopPropagation(); openViewRecipeModal(recipe, slot.persones); });
           casella.appendChild(veureBtn);
